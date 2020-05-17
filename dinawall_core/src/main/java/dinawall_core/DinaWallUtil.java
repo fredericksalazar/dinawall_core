@@ -1,20 +1,35 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Copyright(C) Frederick Salazar Sanchez <fredefass01@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package dinawall_core;
 
 import java.awt.Dimension;
+import java.awt.HeadlessException;
 import static java.awt.Toolkit.getDefaultToolkit;
 
 
 /**
- *
+ * this class has general utilities that are used in the dinawall ecosystem
+ * 
  * @author frederick
  */
 
 public class DinaWallUtil {
+    
+    private String version_lib_core;
     
     private static DinaWallUtil util;
     
@@ -24,9 +39,7 @@ public class DinaWallUtil {
     private String user_name;
     private String home;
     private String desktop;
-    
-    private String kde_bash_setup;
-    
+        
     private Dimension screen_dimension;
     
     private int width_screen;
@@ -49,6 +62,8 @@ public class DinaWallUtil {
             desktop = System.getenv("XDG_CURRENT_DESKTOP");
             separator = System.getProperty("file.separator");
             
+            version_lib_core = "1.0";
+            
             getDimensionScreen();
             
         }catch(Exception e){
@@ -65,7 +80,7 @@ public class DinaWallUtil {
            screen_dimension = getDefaultToolkit(). getScreenSize();
            width_screen = (int) screen_dimension.getWidth();
            height_screen = (int) screen_dimension.getHeight();
-        }catch(Exception e){
+        }catch(HeadlessException e){
             e.printStackTrace();
         }
     }
@@ -118,6 +133,10 @@ public class DinaWallUtil {
                          + " desktop : "+ this.desktop+"\n"
                          + " home : "+this.home+"\n"
                          + " user_name : "+this.user_name);
+    }
+    
+    public String version_lib_core(){
+        return this.version_lib_core;
     }
     
     
