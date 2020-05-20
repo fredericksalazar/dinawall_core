@@ -17,6 +17,7 @@
 
 package dinawall_core.desktop;
 
+import dinawall_core.wallpaper.Wallpaper;
 import java.io.IOException;
 
 /**
