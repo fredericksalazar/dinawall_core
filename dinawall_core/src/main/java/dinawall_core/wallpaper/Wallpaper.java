@@ -14,25 +14,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dinawall_core.desktop;
+package dinawall_core.wallpaper;
 
 /**
  * this class is wallpaper object 
  * 
  * @author frederick
  */
+
 public class Wallpaper {
     
     private String name;
     private String url; 
     private String extension;
+    
+    public Wallpaper(){
+        
+    }
+    
+    public Wallpaper(String name){
+        this.name = name;
+    }
 
     public Wallpaper(String name, String url, String extension) {
         this.name = name;
         this.url = url;
         this.extension = extension;
     }
-
+    
     public String getName() {
         return name;
     }
@@ -56,7 +65,7 @@ public class Wallpaper {
     public void setExtension(String extension) {
         this.extension = extension;
     }
-
+    
     @Override
     public String toString() {
         return "Wallpaper{" + "name=" + name + ", url=" + url + ", extension=" + extension + '}';

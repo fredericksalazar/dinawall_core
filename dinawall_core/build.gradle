@@ -3,11 +3,17 @@ apply plugin: 'jacoco'
 apply plugin: 'maven-publish'
 
 
-description = 'core library of dinawall app'
+description = 'dinawall_core'
+
 repositories {
-    jcenter()
+    mavenCentral()    
 }
 
 dependencies {
-    testImplementation     'junit:junit:4.13'
+    
+    testImplementation      'junit:junit:4.13'    
+    implementation          "commons-io:commons-io:2.6"
+    implementation          'com.google.code.gson:gson:2.8.5'
+    implementation          files('../libs/NiconNotifyOSD.jar')
+ 
 }

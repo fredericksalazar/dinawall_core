@@ -16,6 +16,8 @@
 
 package dinawall_core.desktop;
 
+import dinawall_core.wallpaper.Wallpaper;
+
 /**
  * create a desktop screen object of the machine
  * 
