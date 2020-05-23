@@ -16,13 +16,17 @@
 
 package dinawall_core.wallpaper;
 
+import java.io.Serializable;
+
 /**
  * this class is wallpaper object 
  * 
  * @author frederick
  */
 
-public class Wallpaper {
+public class Wallpaper implements Serializable{
+    
+    private static final long serialVersionUID = 44L;
     
     private String name;
     private String url; 

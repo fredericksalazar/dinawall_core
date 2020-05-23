@@ -1,17 +1,31 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Copyright(C) Frederick Salazar Sanchez <fredefass01@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package dinawall_core.wallpaper;
 
 import java.io.Serializable;
 import java.util.List;
 
 /**
- *
+ * This class create a DinaWallpaper object, this object have a list of @Wallpaper
+ * object, this wallpapers are setted in the desktop enviroment
+ * 
  * @author frederick
  */
+
 public class DinaWallpaper implements Serializable{
     
     private static final long serialVersionUID = 2L;
@@ -25,10 +39,7 @@ public class DinaWallpaper implements Serializable{
     private String preview;
         
     private List<TimedWallpaper> timedWallpapers;
-    
-    public DinaWallpaper(){
-        
-    }
+
 
     public DinaWallpaper(String name, String url, String fecha, String autor, 
                          String email, String license, String preview,
@@ -109,7 +120,14 @@ public class DinaWallpaper implements Serializable{
 
     @Override
     public String toString() {
-        return "DinaWallpaper{" + "name=" + name + ", url=" + url + ", fecha=" + fecha + ", autor=" + autor + ", email=" + email + ", license=" + license + ", preview=" + preview + '}';
+        return "DinaWallpaper{\n" + 
+                              " name = " + name + ",\n"
+                            + " url = " + url + ",\n"
+                            + " fecha=" + fecha + ",\n"
+                            + " autor = " + autor + ",\n"
+                            + " email = " + email + ",\n"
+                            + " license = " + license + ",\n"
+                            + " preview = " + preview + "\n}";
     }
     
 }

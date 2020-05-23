@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import dinawall_core.wallpaper.DinaWallpaper;
+import dinawall_core.wallpaper.TimedWallpaper;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import static java.awt.Toolkit.getDefaultToolkit;
@@ -32,7 +33,8 @@ import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import nicon.notify.core.Notification;
 
 
@@ -47,6 +49,7 @@ public class DinaWallUtil {
     private File dinawall_dir;
     private File config_dir;
     private File installed_dir;
+    private File plasma_script_file;
         
     private static DinaWallUtil util;
     
@@ -65,6 +68,7 @@ public class DinaWallUtil {
     private String separator;
     private Gson json_file;
     private Reader reader;
+    private File din_file;
         
     private DinaWallUtil() {
       init();  
@@ -83,16 +87,16 @@ public class DinaWallUtil {
             desktop = System.getenv("XDG_CURRENT_DESKTOP");
             separator = System.getProperty("file.separator");
             
-            version_lib_core = "1.0";
+            version_lib_core = "0.8";
             
             dinawall_dir = new File(this.getHome()+"/.dinawall");
             config_dir = new File(dinawall_dir.getAbsoluteFile()+"/config");
-            installed_dir = new File(dinawall_dir.getAbsoluteFile()+"/installed");
+            installed_dir = new File(home+"/.dinawall/installed");            
                         
             getDimensionScreen();
             
         }catch(Exception e){
-            
+            e.printStackTrace();
         }
     }
     
@@ -106,6 +110,7 @@ public class DinaWallUtil {
            width_screen = (int) screen_dimension.getWidth();
            height_screen = (int) screen_dimension.getHeight();
         }catch(HeadlessException e){
+            e.printStackTrace();
         }
     }
     
@@ -135,20 +140,18 @@ public class DinaWallUtil {
      */
     
     private void createDinaWallConfigDir(){
-        
-        System.out.println("dinawall_core.DinaWallUtil.createDinaWallConfigDir()");
-               
-        try{            
-            if(!dinawall_dir.exists()){
-                if(dinawall_dir.mkdir()){                    
+                
+        if(!dinawall_dir.exists()){
+            if(dinawall_dir.mkdir()){
+                try {
                     installed_dir.mkdir();
-                    config_dir.mkdir();
-                }
-            }            
-            System.out.println("the config dir has been created ...");
-        }catch(Exception e){
-            e.printStackTrace();
+                    config_dir.mkdir();                    
+                } catch (Exception ex) {
+                    Logger.getLogger(DinaWallUtil.class.getName()).log(Level.SEVERE, null, ex);
+                } 
+            }
         }
+        System.out.println("the config dir has been created ...");
     }
     
     
@@ -163,7 +166,7 @@ public class DinaWallUtil {
      */
     
     public DinaWallpaper install_din_object(File json) throws IOException{
-        DinaWallpaper dina_wallpaper = null;
+        DinaWallpaper dina_wallpaper = null;        
                         
         try{
             System.out.println("load a json file installer ... "+json.getAbsolutePath());
@@ -175,15 +178,47 @@ public class DinaWallUtil {
                 dina_wallpaper = json_file.fromJson(reader, DinaWallpaper.class);
                 
                 if(dina_wallpaper != null && dina_wallpaper.getTimedWallpapers()!=null){
-
-                    dina_wallpaper.getTimedWallpapers().forEach(timedWallpaper->{                    
-                        timedWallpaper.setUrl(json.getParent()+"/images/"+timedWallpaper.getName());
-                        timedWallpaper.setExtension(timedWallpaper.getName().split("\\.")[1]);
+                    
+                    din_file = new File(this.config_dir+"/"+dina_wallpaper.getName()+".din");
+                    
+                    dina_wallpaper.getTimedWallpapers().forEach((TimedWallpaper timedWallpaper) -> {
+                        
+                        if(new File(json.getParent()+"/images/"+timedWallpaper.getName()).exists()){
+                            timedWallpaper.setUrl(json.getParent()+"/images/"+timedWallpaper.getName());
+                            timedWallpaper.setExtension(timedWallpaper.getName().split("\\.")[1]);
+                            
+                            int hour = Integer.parseInt(timedWallpaper.getTimed().split(":")[0]);
+                            int minute = Integer.parseInt(timedWallpaper.getTimed().split(":")[1]);
+                            
+                            if(hour >= 0 && hour <= 24){
+                                timedWallpaper.setHour(hour);
+                                
+                                if(minute >= 0 && minute < 60){
+                                    timedWallpaper.setMinute(minute);
+                                }else{
+                                   Notification.show("DinaWall", "A minute value in the json install file is very BAD, the dynamic wallpaper is not installed",
+                                        Notification.NICON_DARK_THEME,
+                                        Notification.ERROR_MESSAGE); 
+                                }
+                            }else{
+                                Notification.show("DinaWall", "A hour value in the json install file is very BAD, the dynamic wallpaper is not installed",
+                                        Notification.NICON_DARK_THEME,
+                                        Notification.ERROR_MESSAGE);
+                            }
+                        }else{
+                            Notification.show("DinaWall", "The json installer file has a ERROR, the dynamic wallpaper is not installed",
+                                    Notification.NICON_DARK_THEME,
+                                    Notification.ERROR_MESSAGE);
+                        }
                     });
                     
-                    try (ObjectOutputStream dina_output = new ObjectOutputStream(new FileOutputStream(this.config_dir+"/"+dina_wallpaper.getName()+".din"))) {
-                        dina_output.writeObject(dina_wallpaper);
-                        dina_output.close(); 
+                    if(din_file.exists()){
+                        din_file.delete();
+                    }else{
+                       try (ObjectOutputStream dina_output = new ObjectOutputStream(new FileOutputStream(this.config_dir+"/"+dina_wallpaper.getName()+".din"))) {
+                            dina_output.writeObject(dina_wallpaper);
+                            dina_output.close(); 
+                        } 
                     }
                 }
             }
@@ -196,10 +231,20 @@ public class DinaWallUtil {
             dina_wallpaper = null;
             reader.close();
             json_file = null;
+            din_file = null;
         }
         
         return dina_wallpaper;
     }
+    
+    
+    /**
+     * This method get and return a DinaWallpaper object from a .din file
+     * in the file system
+     * 
+     * @param din
+     * @return @DinaWallpaper
+     */
     
     public DinaWallpaper getDinaWallpaperOfDin(File din){
         ObjectInputStream in;
@@ -207,9 +252,13 @@ public class DinaWallUtil {
         
         try{
             if(din != null && din.isFile()){
+                
+                System.out.println("Leyendo archivo din de -> "+din.getAbsolutePath());
+                
                 in = new ObjectInputStream(new FileInputStream(din));
                 dina_wallpaper = (DinaWallpaper) in.readObject();
-                in.close();                
+                in.close(); 
+                
             }
         }catch(IOException | ClassNotFoundException e){
             Notification.show("DinaWall", "Cant not read a .din object, ERROR has ocurred", Notification.NICON_DARK_THEME, Notification.ERROR_MESSAGE);
@@ -270,7 +319,11 @@ public class DinaWallUtil {
     public String getSeparator() {
         return separator;
     }
-              
+
+    public File getPlasma_script_file() {
+        return plasma_script_file;
+    }
+          
     public void print_properties(){
         System.out.println("system properties:\n"
                          + " os : "+this.os+"\n"
@@ -286,7 +339,7 @@ public class DinaWallUtil {
     }
     
     
-    public static DinaWallUtil getInstance() {
+    synchronized public static DinaWallUtil getInstance() {
         if (util == null){
             util = new DinaWallUtil();
         }        

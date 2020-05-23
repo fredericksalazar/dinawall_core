@@ -26,25 +26,23 @@ import java.io.IOException;
  * 
  * @author frederick
  */
+
 public class DesktopKDE extends Desktop{
     
     private final int width;
     private final int height;
     private final String enviroment;
     private final String operativeSystem;
+    private final ProcessBuilder pb;
+    
     private Wallpaper wallpaper;
     private String bash_kde_setup_wallpaper;
     
-        
-    private ProcessBuilder pb;
-    private Process bash;
-
     public DesktopKDE(int width, int height, String enviroment, String operativeSystem) {
         this.width = width;
         this.height = height;
         this.enviroment = enviroment;
         this.operativeSystem = operativeSystem;
-        
         this.pb = new ProcessBuilder();
     }  
     
@@ -55,7 +53,6 @@ public class DesktopKDE extends Desktop{
         this.enviroment = enviroment;
         this.operativeSystem = operativeSystem;
         this.wallpaper = wallpaper;
-        
         this.pb = new ProcessBuilder();
     }
         
@@ -89,20 +86,33 @@ public class DesktopKDE extends Desktop{
      */
     
     @Override
-    public boolean setWallpaper(Wallpaper wallpaper) {
+    synchronized public boolean setWallpaper(Wallpaper wallpaper) {
         
         try{     
             this.wallpaper = wallpaper;
-            
+                        
             pb.command("qdbus",
                        "org.kde.plasmashell",
                        "/PlasmaShell",
                        "org.kde.PlasmaShell.evaluateScript",get_bash_script_setup_kde_wallaper())
                     .start();
+            
         }catch(IOException e){
             e.addSuppressed(e);
         }
         return true;
+    }
+    
+    /**
+     * This method set the evaluate script for plasma to change a wallpaper image
+     * using a url to file
+     * 
+     * @return 
+     */
+    private String get_bash_script_setup_kde_wallaper(){               
+        this.bash_kde_setup_wallpaper = "var allDesktops = desktops();for (i=0;i<allDesktops.length;i++) {d = allDesktops[i];d.wallpaperPlugin = 'org.kde.image';d.currentConfigGroup = Array('Wallpaper', 'org.kde.image', 'General');d.writeConfig('Image', 'file:"+wallpaper.getUrl()+"')}";
+        System.out.println(bash_kde_setup_wallpaper);
+        return this.bash_kde_setup_wallpaper;
     }
 
     @Override
@@ -110,13 +120,6 @@ public class DesktopKDE extends Desktop{
         return this.wallpaper;
     }
     
-    private String get_bash_script_setup_kde_wallaper(){
-               
-        this.bash_kde_setup_wallpaper = "var allDesktops = desktops();for (i=0;i<allDesktops.length;i++) {d = allDesktops[i];d.wallpaperPlugin = 'org.kde.image';d.currentConfigGroup = Array('Wallpaper', 'org.kde.image', 'General');d.writeConfig('Image', 'file:"+wallpaper.getUrl()+"')}";
-        System.out.println(bash_kde_setup_wallpaper);
-        return this.bash_kde_setup_wallpaper;
-    }
-
     @Override
     public String toString() {
         return "DesktopKDE{" + "width=" + width + ", height=" + height + ", enviroment=" + enviroment + ", operativeSystem=" + operativeSystem + ", wallpaper=" + wallpaper + '}';
