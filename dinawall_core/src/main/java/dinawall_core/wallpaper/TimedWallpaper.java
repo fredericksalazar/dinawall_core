@@ -35,7 +35,7 @@ public class TimedWallpaper extends Wallpaper implements Serializable{
     private int hour;
     private int minute;
     private String timed;
-
+    
     public TimedWallpaper(){
         
     }
@@ -43,6 +43,10 @@ public class TimedWallpaper extends Wallpaper implements Serializable{
     public TimedWallpaper(String name, String timed){
         super(name);
         this.timed = timed;
+    }
+    
+    public TimedWallpaper(String name, String url, String extension){
+        super(name, url, extension);
     }
         
     public int getHour() {
@@ -68,7 +72,7 @@ public class TimedWallpaper extends Wallpaper implements Serializable{
     public void setTimed(String timed) {
         this.timed = timed;
     }
-    
+        
     @Override
     public String toString() {
         return "TimedWallpaper{" + "nombre=" + this.getName() + ",\n"
