@@ -48,7 +48,7 @@ public final class DinaWallCore {
     private File json_file;
     private File json_directory;
     
-    private ArrayList list_dinaWall;
+    private ArrayList<DinaWallpaper> list_dinaWall;
     private Collection<File> list_din_files;
     private DinaWallpaper current_dinawall;
     
@@ -183,7 +183,7 @@ public final class DinaWallCore {
      * @return 
      */
     
-    public ArrayList get_dinawall_installed(){
+    public ArrayList<DinaWallpaper> get_dinawall_installed(){
         Collection<File> listFiles;
         DinaWallpaper dina_wallpaper;
         
