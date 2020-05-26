@@ -16,8 +16,6 @@
 
 package dinawall_core.daemon;
 
-import dinawall_core.DinaWallCore;
-
 /**
  *
  * @author frederick
@@ -28,13 +26,8 @@ public class DinaWallDaemon {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        
-        System.out.println("Iniciando dinawall ...");
-        
-        DinaWallCore dinawall_core = DinaWallCore.getInstance();
-        //dinawall_core.install_dinawallpaper("/home/frederick/Escritorio/atacama/dinawall_config.json");
-        
-        InitDaemon dinawall_daemon = new InitDaemon();
+                
+        InitDaemon dinawall_daemon = InitDaemon.getInstance();
         dinawall_daemon.init_dinawall_daemon();
         
     }

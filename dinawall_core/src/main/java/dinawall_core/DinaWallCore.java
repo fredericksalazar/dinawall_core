@@ -16,6 +16,7 @@
 
 package dinawall_core;
 
+import dinawall_core.daemon.InitDaemon;
 import dinawall_core.desktop.Desktop;
 import dinawall_core.desktop.DesktopKDE;
 import dinawall_core.wallpaper.DinaWallpaper;
@@ -41,6 +42,7 @@ import org.apache.commons.io.FileUtils;
 public final class DinaWallCore {
     
     private static DinaWallCore dinaWall_core;
+    private InitDaemon dinawall_daemon;
     
     private DinaWallUtil dinaWall_util;
     private Desktop desktop_enviroment;
@@ -48,7 +50,7 @@ public final class DinaWallCore {
     private File json_file;
     private File json_directory;
     
-    private ArrayList list_dinaWall;
+    private ArrayList<DinaWallpaper> list_dinaWall;
     private Collection<File> list_din_files;
     private DinaWallpaper current_dinawall;
     
@@ -59,6 +61,7 @@ public final class DinaWallCore {
     protected void init(){
         try{
             dinaWall_util = DinaWallUtil.getInstance();
+            dinawall_daemon = InitDaemon.getInstance();
             list_dinaWall = this.get_dinawall_installed();
             setDesktopEnviroment();
         }catch(Exception e){
@@ -183,7 +186,7 @@ public final class DinaWallCore {
      * @return 
      */
     
-    public ArrayList get_dinawall_installed(){
+    public ArrayList<DinaWallpaper> get_dinawall_installed(){
         Collection<File> listFiles;
         DinaWallpaper dina_wallpaper;
         
@@ -199,8 +202,10 @@ public final class DinaWallCore {
                 System.out.println("Total archivos din : "+listFiles.size());
                 
                    for(File file : listFiles){
-                       dina_wallpaper = dinaWall_util.getDinaWallpaperOfDin(file);
-                       list_dinaWall.add(dina_wallpaper);
+                       if(!"current.din".equals(file.getName())){
+                            dina_wallpaper = dinaWall_util.getDinaWallpaperOfDin(file);
+                            list_dinaWall.add(dina_wallpaper);
+                       }
                    }
 
             }catch(Exception e){
@@ -248,8 +253,16 @@ public final class DinaWallCore {
      */
     public void setCurrentDinaWallpaper(DinaWallpaper dina_wall){
         try{
-            FileUtils.copyFile(new File(dinaWall_util.getConfig_dir()+"/"+dina_wall.getName()+".din"), 
-                               new File(dinaWall_util.getConfig_dir()+"/current.din"));
+            if(dinawall_daemon != null){
+                if(dinawall_daemon.getDina_sheduled().isStarted()){
+                    dinawall_daemon.getDina_sheduled().stop();
+                }
+                
+                FileUtils.copyFile(new File(dinaWall_util.getConfig_dir()+"/"+dina_wall.getName()+".din"), 
+                                   new File(dinaWall_util.getConfig_dir()+"/current.din"));
+                
+                dinawall_daemon.init_dinawall_daemon();
+            }
         }catch(IOException e){
             Notification.show("DinaWall", "A ERROR Has ocurred setting a current dinawallpaper", Notification.NICON_DARK_THEME, Notification.ERROR_MESSAGE);
         }

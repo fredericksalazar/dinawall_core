@@ -179,6 +179,10 @@ public class DinaWallUtil {
                 
                 if(dina_wallpaper != null && dina_wallpaper.getTimedWallpapers()!=null){
                     
+                    dina_wallpaper.setPreview(json.getParent()+"/images/"+dina_wallpaper.getPreview());
+                    
+                    System.err.println("Ruta al preview -> "+dina_wallpaper.getPreview());
+                    
                     din_file = new File(this.config_dir+"/"+dina_wallpaper.getName()+".din");
                     
                     dina_wallpaper.getTimedWallpapers().forEach((TimedWallpaper timedWallpaper) -> {
