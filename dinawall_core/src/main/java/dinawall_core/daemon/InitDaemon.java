@@ -29,12 +29,23 @@ import nicon.notify.core.Notification;
  */
 public class InitDaemon {
     
+    public static InitDaemon dinawall_daemon;
+    
     private DinaWallpaper current;
     private final DinaWallCore dinawall_core;
     private Scheduler dina_sheduled;
 
-    public InitDaemon() {
+    private InitDaemon() {
         dinawall_core = DinaWallCore.getInstance();
+        dina_sheduled  = new Scheduler();
+    }
+
+    public Scheduler getDina_sheduled() {
+        return dina_sheduled;
+    }
+
+    public void setDina_sheduled(Scheduler dina_sheduled) {
+        this.dina_sheduled = dina_sheduled;
     }
     
     
@@ -59,7 +70,6 @@ public class InitDaemon {
                     
                     System.out.println("ajustando wallpaper a cron ->"+timed_wallpaper.getUrl()+ " in -> "+timed_wallpaper.getTimed());
                     
-                    dina_sheduled  = new Scheduler();
                     dinawall_task = new SetTimedWallpaperTask(timed_wallpaper, dinawall_core);
                         
                     dina_sheduled.schedule(String.valueOf(timed_wallpaper.getMinute())+" "+String.valueOf(timed_wallpaper.getHour())+" * * *", 
@@ -73,6 +83,14 @@ public class InitDaemon {
         }catch(InvalidPatternException | IllegalStateException e){
             e.printStackTrace();
         }
+    }
+    
+    public static InitDaemon getInstance(){
+        if(dinawall_daemon == null){
+            dinawall_daemon = new InitDaemon();
+        }
+        
+        return dinawall_daemon;
     }
     
 }
