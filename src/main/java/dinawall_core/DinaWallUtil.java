@@ -69,6 +69,10 @@ public class DinaWallUtil {
     private Gson json_file;
     private Reader reader;
     private File din_file;
+    
+    private boolean validate = true;
+    
+    private DinaWallpaper dina_wallpaper;
         
     private DinaWallUtil() {
       init();  
@@ -166,7 +170,6 @@ public class DinaWallUtil {
      */
     
     public DinaWallpaper install_din_object(File json) throws IOException{
-        DinaWallpaper dina_wallpaper = null;        
                         
         try{
             System.out.println("load a json file installer ... "+json.getAbsolutePath());
@@ -203,36 +206,41 @@ public class DinaWallUtil {
                                    Notification.show("DinaWall", "A minute value in the json install file is very BAD, the dynamic wallpaper is not installed",
                                         Notification.NICON_DARK_THEME,
                                         Notification.ERROR_MESSAGE); 
+                                   validate = false;
+                                   dina_wallpaper = null;
                                 }
                             }else{
                                 Notification.show("DinaWall", "A hour value in the json install file is very BAD, the dynamic wallpaper is not installed",
                                         Notification.NICON_DARK_THEME,
                                         Notification.ERROR_MESSAGE);
+                                validate = false;
+                                dina_wallpaper = null;
                             }
                         }else{
-                            Notification.show("DinaWall", "The json installer file has a ERROR, the dynamic wallpaper is not installed",
+                            Notification.show("DinaWall", "The json installer file has a ERROR, a image not exists in images directory, the dynamic wallpaper is not installed",
                                     Notification.NICON_DARK_THEME,
                                     Notification.ERROR_MESSAGE);
+                            validate = false;
+                            dina_wallpaper = null;
                         }
                     });
                     
                     if(din_file.exists()){
                         din_file.delete();
                     }else{
-                       try (ObjectOutputStream dina_output = new ObjectOutputStream(new FileOutputStream(this.config_dir+"/"+dina_wallpaper.getName()+".din"))) {
-                            dina_output.writeObject(dina_wallpaper);
-                            dina_output.close(); 
-                        } 
+                       if(validate){
+                            try (ObjectOutputStream dina_output = new ObjectOutputStream(new FileOutputStream(this.config_dir+"/"+dina_wallpaper.getName()+".din"))) {
+                                dina_output.writeObject(dina_wallpaper);
+                                dina_output.close(); 
+                            } 
+                       }
                     }
                 }
             }
-            
-            Notification.show("DinaWall", "The new Dynamic Wallpaper "+dina_wallpaper.getName()+" is installed", Notification.NICON_DARK_THEME, Notification.OK_MESSAGE);
-                        
+                     
         }catch(JsonIOException | JsonSyntaxException | IOException e){
-            Notification.show("DinaWall ERROR", "A Error has ocurred, dynamic wallpaper is not installed", Notification.NICON_DARK_THEME, Notification.ERROR_MESSAGE);
+            System.err.println("Error in DinaUtil.install_din_object -> "+e);
         }finally{
-            dina_wallpaper = null;
             reader.close();
             json_file = null;
             din_file = null;
