@@ -13,39 +13,33 @@ dependencies {
     testImplementation      'junit:junit:4.13'    
     implementation          "commons-io:commons-io:2.6"
     implementation          'com.google.code.gson:gson:2.8.5'
-    implementation          files('../libs/NiconNotifyOSD.jar')
+    implementation          files('../lib/NiconNotifyOSD.jar')
     implementation          'it.sauronsoftware.cron4j:cron4j:2.2.5' 
 }
 
 task buildJar(type: Jar) {
-    classifier = 'all'
-    baseName = 'dinawall_core_lib'
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-         }
-            {
-                exclude "META-INF/*.SF"
-                exclude "META-INF/*.DSA"
-                exclude "META-INF/*.RSA"
-            }
     manifest {
-    attributes(
-      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-      'Main-Class': 'dinawall_core.daemon.DinaWallDaemon'
-    )
-  }
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'dinawall_core.init.DinaWallDaemon'
+        )
+    }
+    baseName = 'dinawall_core_lib'
+    from {configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }} 
     with jar
 }
 
-jar {
-  manifest {
-    attributes(
-      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-      'Main-Class': 'dinawall_core.daemon.DinaWallDaemon'
-    )
-  }
+application {
+    mainClassName = "dinawall_core.init.DinaWallDaemon"
 }
 
-application {
-    mainClassName = "dinawall_core.daemon.DinaWallDaemon"
-}
+//jar {
+//  manifest {
+//    attributes(
+//      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+//      'Main-Class': 'dinawall_core.init.DinaWallDaemon'
+//    )
+//  }
+//}
+
+

@@ -16,11 +16,13 @@
 
 package dinawall_core;
 
-import dinawall_core.daemon.InitDaemon;
 import dinawall_core.desktop.Desktop;
 import dinawall_core.desktop.DesktopKDE;
 import dinawall_core.wallpaper.DinaWallpaper;
+import dinawall_core.wallpaper.TimedWallpaper;
 import dinawall_core.wallpaper.Wallpaper;
+import it.sauronsoftware.cron4j.InvalidPatternException;
+import it.sauronsoftware.cron4j.Scheduler;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,18 +43,20 @@ import org.apache.commons.io.FileUtils;
 
 public final class DinaWallCore {
     
-    private static DinaWallCore dinaWall_core;
-    private InitDaemon dinawall_daemon;
-    
+    private static DinaWallCore dinaWall_core;    
     private DinaWallUtil dinaWall_util;
     private Desktop desktop_enviroment;
     private Wallpaper wallpaper;
+    private DinaWallpaper current_dinawall;
+    
+    private Scheduler dinawall_daemon;
+    
     private File json_file;
     private File json_directory;
     
     private ArrayList<DinaWallpaper> list_dinaWall;
     private Collection<File> list_din_files;
-    private DinaWallpaper current_dinawall;
+    
     
     private DinaWallCore(){
         init();
@@ -61,11 +65,11 @@ public final class DinaWallCore {
     protected void init(){
         try{
             dinaWall_util = DinaWallUtil.getInstance();
-            dinawall_daemon = InitDaemon.getInstance();
             list_dinaWall = this.get_dinawall_installed();
+            dinawall_daemon = new Scheduler();
             setDesktopEnviroment();
         }catch(Exception e){
-            e.printStackTrace();
+            System.err.println("Error iniciando dinawall_core -> "+e);
         }
     }
     
@@ -91,7 +95,7 @@ public final class DinaWallCore {
                 }
             }
         }catch(Exception e){
-            e.printStackTrace();
+            System.err.println("Error ajustando entorno de escritorio -> "+e);
         }
     }
     
@@ -126,7 +130,7 @@ public final class DinaWallCore {
                 wallpaper = null;
               }
         }catch(Exception e){
-            e.printStackTrace();
+            System.err.println("Error ajustando wallpaper -> "+e);
         }
     }
     
@@ -147,9 +151,12 @@ public final class DinaWallCore {
      * path to json file selected
      * 
      * @param json_path
+     * @return 
      */
     
-    public void install_dinawallpaper(String json_path){
+    public DinaWallpaper install_dinawallpaper(String json_path){
+        
+        DinaWallpaper installed = null;
         
         if(json_path != null){
             json_file = new File(json_path);
@@ -166,10 +173,15 @@ public final class DinaWallCore {
                         FileUtils.copyDirectoryToDirectory(json_directory.getAbsoluteFile(),
                                                            dinaWall_util.getInstalledDirectory());
                        
-                        list_dinaWall.add(dinaWall_util.install_din_object(
-                                                        new File(dinaWall_util.getInstalledDirectory()+
-                                                                 "/"+json_directory.getName()+"/"+
-                                                                 json_file.getName())));
+                        installed = dinaWall_util.install_din_object(new File(dinaWall_util.getInstalledDirectory()+
+                                                                    "/"+json_directory.getName()+"/"+
+                                                                    json_file.getName()));
+                        
+                        if(installed == null){
+                            FileUtils.deleteDirectory(new File(dinaWall_util.getInstalledDirectory()+"/"+json_directory.getName()));
+                        }else{
+                          list_dinaWall.add(installed);  
+                        }
                     } catch (IOException ex) {
                         Logger.getLogger(DinaWallCore.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -177,6 +189,7 @@ public final class DinaWallCore {
             }
         }
         
+        return installed;
     }
     
     /**
@@ -209,7 +222,7 @@ public final class DinaWallCore {
                    }
 
             }catch(Exception e){
-                e.printStackTrace();
+                System.err.println("Error obteniendo lista de wallpapers -> "+e);
             }
             finally{
                 listFiles = null;            
@@ -239,7 +252,7 @@ public final class DinaWallCore {
             }
                         
         }catch(Exception e){
-            e.printStackTrace();
+            System.err.println("Error obteniendo current wallpaper -> "+e);
         } finally{
             list_din_files = null;
         }
@@ -253,19 +266,73 @@ public final class DinaWallCore {
      */
     public void setCurrentDinaWallpaper(DinaWallpaper dina_wall){
         try{
-            if(dinawall_daemon != null){
-                if(dinawall_daemon.getDina_sheduled().isStarted()){
-                    dinawall_daemon.getDina_sheduled().stop();
-                }
-                
-                FileUtils.copyFile(new File(dinaWall_util.getConfig_dir()+"/"+dina_wall.getName()+".din"), 
+            FileUtils.copyFile(new File(dinaWall_util.getConfig_dir()+"/"+dina_wall.getName()+".din"), 
                                    new File(dinaWall_util.getConfig_dir()+"/current.din"));
-                
-                dinawall_daemon.init_dinawall_daemon();
-            }
+            init_dinawall_daemon();
         }catch(IOException e){
             Notification.show("DinaWall", "A ERROR Has ocurred setting a current dinawallpaper", Notification.NICON_DARK_THEME, Notification.ERROR_MESSAGE);
         }
+    }
+    
+    
+    /**
+     * This method delete a dinawallpaper of the config dir and installed dir
+     * @param dina_wall 
+     */
+    public void deleteDinaWallpaper(DinaWallpaper dina_wall){
+        try{
+            File file = new File(dinaWall_util.getConfig_dir()+"/"+dina_wall.getName()+".din");
+            file.delete();
+            File directory = new File(dinaWall_util.getInstalledDirectory()+"/"+dina_wall.getName());
+            directory.delete();
+            file = null;
+            directory = null;
+        }catch(Exception e){
+            System.err.println("ERROR in deleteDinaWallpaper -> "+e);
+        }
+    }
+    
+    /**
+     * this method star a daemon of dnamicwallpaper to change dynamically the
+     * wallpaper based in the hour
+     * 
+     */
+    
+    public void init_dinawall_daemon(){
+        SetTimedWallpaperTask dinawall_task;
+                
+        try{
+            getCurrentDinaWallpaper();
+            
+            if(dinawall_daemon.isStarted()){
+                dinawall_daemon.stop();
+            }
+            
+            if(this.current_dinawall != null){                
+                for(TimedWallpaper timed_wallpaper : this.current_dinawall.getTimedWallpapers()){                                       
+                    dinawall_task = new SetTimedWallpaperTask(timed_wallpaper, this);                        
+                    dinawall_daemon.schedule(String.valueOf(timed_wallpaper.getMinute())+" "+String.valueOf(timed_wallpaper.getHour())+" * * *", 
+                                           dinawall_task);                    
+                }
+            }else{
+                Notification.show("DinaWall", "Dont have a Dynamic Wallpaper current, please select a dinawall in the panel", Notification.NICON_DARK_THEME, Notification.INFO_ICON);
+            }
+            
+            dinawall_daemon.start();
+            
+            System.out.println("The daemon has started ...");
+            
+        }catch(InvalidPatternException | IllegalStateException e){
+            System.err.println("Error iniciando demonio-> "+e);
+        }
+    }
+    
+    public void stop_daemon(){
+        this.dinawall_daemon.stop();
+    }
+    
+    public void start_daemon(){
+        this.dinawall_daemon.start();
     }
     
     synchronized public static DinaWallCore getInstance(){
