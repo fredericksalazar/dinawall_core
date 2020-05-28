@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dinawall_core.daemon;
+package dinawall_core.init;
 
 /**
  *
@@ -27,8 +27,7 @@ public class DinaWallDaemon {
      */
     public static void main(String[] args) {
                 
-        InitDaemon dinawall_daemon = InitDaemon.getInstance();
-        dinawall_daemon.init_dinawall_daemon();
+        dinawall_core.DinaWallCore.getInstance().init_dinawall_daemon();
         
     }
     

@@ -14,9 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dinawall_core.daemon;
+package dinawall_core;
 
-import dinawall_core.DinaWallCore;
 import dinawall_core.wallpaper.TimedWallpaper;
 import it.sauronsoftware.cron4j.Task;
 import it.sauronsoftware.cron4j.TaskExecutionContext;
