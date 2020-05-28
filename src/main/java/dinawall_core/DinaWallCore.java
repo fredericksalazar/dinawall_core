@@ -151,9 +151,12 @@ public final class DinaWallCore {
      * path to json file selected
      * 
      * @param json_path
+     * @return 
      */
     
-    public void install_dinawallpaper(String json_path){
+    public DinaWallpaper install_dinawallpaper(String json_path){
+        
+        DinaWallpaper installed = null;
         
         if(json_path != null){
             json_file = new File(json_path);
@@ -170,10 +173,15 @@ public final class DinaWallCore {
                         FileUtils.copyDirectoryToDirectory(json_directory.getAbsoluteFile(),
                                                            dinaWall_util.getInstalledDirectory());
                        
-                        list_dinaWall.add(dinaWall_util.install_din_object(
-                                                        new File(dinaWall_util.getInstalledDirectory()+
-                                                                 "/"+json_directory.getName()+"/"+
-                                                                 json_file.getName())));
+                        installed = dinaWall_util.install_din_object(new File(dinaWall_util.getInstalledDirectory()+
+                                                                    "/"+json_directory.getName()+"/"+
+                                                                    json_file.getName()));
+                        
+                        if(installed == null){
+                            FileUtils.deleteDirectory(new File(dinaWall_util.getInstalledDirectory()+"/"+json_directory.getName()));
+                        }else{
+                          list_dinaWall.add(installed);  
+                        }
                     } catch (IOException ex) {
                         Logger.getLogger(DinaWallCore.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -181,6 +189,7 @@ public final class DinaWallCore {
             }
         }
         
+        return installed;
     }
     
     /**
@@ -279,9 +288,7 @@ public final class DinaWallCore {
             file = null;
             directory = null;
         }catch(Exception e){
-            Notification.show("DinaWall", "The dynamic wallpaper "+dina_wall.getName()+" has been deleted", 
-                             Notification.NICON_DARK_THEME, 
-                             Notification.OK_MESSAGE);
+            System.err.println("ERROR in deleteDinaWallpaper -> "+e);
         }
     }
     
