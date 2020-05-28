@@ -18,29 +18,28 @@ dependencies {
 }
 
 task buildJar(type: Jar) {
-    classifier = 'all'
-    baseName = 'dinawall_core_lib'
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-         }            
     manifest {
-    attributes(
-      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-      'Main-Class': 'dinawall_core.init.DinaWallDaemon'
-    )
-  }
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'dinawall_core.init.DinaWallDaemon'
+        )
+    }
+    baseName = 'dinawall_core_lib'
+    from {configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }} 
     with jar
-}
-
-jar {
-  manifest {
-    attributes(
-      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-      'Main-Class': 'dinawall_core.init.DinaWallDaemon'
-    )
-  }
 }
 
 application {
     mainClassName = "dinawall_core.init.DinaWallDaemon"
 }
+
+//jar {
+//  manifest {
+//    attributes(
+//      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+//      'Main-Class': 'dinawall_core.init.DinaWallDaemon'
+//    )
+//  }
+//}
+
+
