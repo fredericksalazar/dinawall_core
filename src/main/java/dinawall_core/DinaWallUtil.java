@@ -203,38 +203,35 @@ public class DinaWallUtil {
                                 if(minute >= 0 && minute < 60){
                                     timedWallpaper.setMinute(minute);
                                 }else{
-                                   Notification.show("DinaWall", "A minute value in the json install file is very BAD, the dynamic wallpaper is not installed",
-                                        Notification.NICON_DARK_THEME,
-                                        Notification.ERROR_MESSAGE); 
                                    validate = false;
                                    dina_wallpaper = null;
                                 }
                             }else{
-                                Notification.show("DinaWall", "A hour value in the json install file is very BAD, the dynamic wallpaper is not installed",
-                                        Notification.NICON_DARK_THEME,
-                                        Notification.ERROR_MESSAGE);
                                 validate = false;
                                 dina_wallpaper = null;
                             }
                         }else{
-                            Notification.show("DinaWall", "The json installer file has a ERROR, a image not exists in images directory, the dynamic wallpaper is not installed",
-                                    Notification.NICON_DARK_THEME,
-                                    Notification.ERROR_MESSAGE);
                             validate = false;
                             dina_wallpaper = null;
                         }
                     });
                     
-                    if(din_file.exists()){
-                        din_file.delete();
+                    
+                    if(validate){
+                         try (ObjectOutputStream dina_output = new ObjectOutputStream(new FileOutputStream(this.config_dir+"/"+dina_wallpaper.getName()+".din"))) {
+                             dina_output.writeObject(dina_wallpaper);
+                             dina_output.close(); 
+                         } 
+                         
+                         Notification.show("DinaWall", "the "+dina_wallpaper.getName()+" has been installed succesfull",
+                                        Notification.NICON_DARK_THEME,
+                                        Notification.OK_MESSAGE); 
                     }else{
-                       if(validate){
-                            try (ObjectOutputStream dina_output = new ObjectOutputStream(new FileOutputStream(this.config_dir+"/"+dina_wallpaper.getName()+".din"))) {
-                                dina_output.writeObject(dina_wallpaper);
-                                dina_output.close(); 
-                            } 
-                       }
+                        Notification.show("DinaWall", "The Dynamic wallpaper json file has a ERROR and the installation is failed",
+                                        Notification.NICON_DARK_THEME,
+                                        Notification.ERROR_MESSAGE); 
                     }
+                    
                 }
             }
                      
