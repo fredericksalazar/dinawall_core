@@ -50,6 +50,8 @@ public final class DinaWallCore {
     private Wallpaper wallpaper;
     private DinaWallpaper current_dinawall;
     
+    private boolean isSupported = false;
+    
     private Scheduler dinawall_daemon;
     
     private File json_file;
@@ -94,6 +96,10 @@ public final class DinaWallCore {
                     setMacOSDesktopEnviroment();
                     break;
             }
+            
+            if(!this.isSupported){
+                Notification.show("DinaWall", "Your System is NOT Supported", Notification.NICON_DARK_THEME,Notification.ERROR_MESSAGE);
+            }
         }catch(Exception e){
             System.err.println("Error ajustando entorno de escritorio -> "+e);
         }
@@ -115,6 +121,8 @@ public final class DinaWallCore {
                                                 dinaWall_util.getOs());
             
              System.err.println("the Linux KDE desktop enviroment has been setted ...");
+             
+             this.isSupported = true;
 
         }
     }
@@ -131,6 +139,8 @@ public final class DinaWallCore {
                                               dinaWall_util.getOs());
         
         System.err.println("the macOS desktop enviroment has been setted ...");
+        
+        this.isSupported = true;
     }
     
     
