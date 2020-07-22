@@ -18,6 +18,7 @@ package dinawall_core;
 
 import dinawall_core.desktop.Desktop;
 import dinawall_core.desktop.DesktopKDE;
+import dinawall_core.desktop.DesktopMacOS;
 import dinawall_core.wallpaper.DinaWallpaper;
 import dinawall_core.wallpaper.TimedWallpaper;
 import dinawall_core.wallpaper.Wallpaper;
@@ -48,6 +49,8 @@ public final class DinaWallCore {
     private Desktop desktop_enviroment;
     private Wallpaper wallpaper;
     private DinaWallpaper current_dinawall;
+    
+    private boolean isSupported = false;
     
     private Scheduler dinawall_daemon;
     
@@ -82,21 +85,62 @@ public final class DinaWallCore {
         try{
             System.out.println("dinawall_core.DinaWallCore.setDesktopEnviroment()");
             dinaWall_util.print_properties();
-                        
-            if("LINUX".equals(dinaWall_util.getOs().toUpperCase())){
-                                
-                //Create a KDE Desktop enviroment
-                if("KDE".equals(dinaWall_util.getDesktop().toUpperCase())){
-                    desktop_enviroment = new DesktopKDE(dinaWall_util.getWidth_screen(), 
-                                                        dinaWall_util.getHeight_screen(), 
-                                                        dinaWall_util.getDesktop(),
-                                                        dinaWall_util.getOs());
-                    
-                }
+            
+            String os = dinaWall_util.getOs();
+            
+            switch (os.toUpperCase()){
+                case "LINUX":
+                    setLinuxDesktopEnviroment();
+                    break;
+                case "MAC OS X":
+                    setMacOSDesktopEnviroment();
+                    break;
+            }
+            
+            if(!this.isSupported){
+                Notification.show("DinaWall", "Your System is NOT Supported", Notification.NICON_DARK_THEME,Notification.ERROR_MESSAGE);
             }
         }catch(Exception e){
             System.err.println("Error ajustando entorno de escritorio -> "+e);
         }
+    }
+    
+    
+    /**
+     * This method create a desktop enviroment object based in the desktop
+     * enviroment kde, gnome, cinnamon etc.
+     * 
+     */
+    
+    private void setLinuxDesktopEnviroment(){
+        //Create a KDE Desktop enviroment
+        if("KDE".equals(dinaWall_util.getDesktop().toUpperCase())){
+            desktop_enviroment = new DesktopKDE(dinaWall_util.getWidth_screen(), 
+                                                dinaWall_util.getHeight_screen(), 
+                                                dinaWall_util.getDesktop(),
+                                                dinaWall_util.getOs());
+            
+             System.err.println("the Linux KDE desktop enviroment has been setted ...");
+             
+             this.isSupported = true;
+
+        }
+    }
+    
+    
+    /**
+     * this method create a desktop enviroment object to the macOS system.
+     */
+    
+    private void setMacOSDesktopEnviroment(){
+        desktop_enviroment = new DesktopMacOS(dinaWall_util.getWidth_screen(),
+                                              dinaWall_util.getHeight_screen(),
+                                              "macOS",
+                                              dinaWall_util.getOs());
+        
+        System.err.println("the macOS desktop enviroment has been setted ...");
+        
+        this.isSupported = true;
     }
     
     

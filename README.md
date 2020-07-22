@@ -1,7 +1,26 @@
 # dinawall_core
 
-DinaWall_Core is a central library of the DinaWall APP, this library is a 1 tier and have a principal objetive dispose a central functionality to integrate java with de Linux Desktop Enviroments tha KDE Plamas, Gnome, Unity, Cinnamon, Deeepin etc.
+DinaWall_Core is the core of the application Dinawall_app, contains all the necessary functionalities for the administration of wallpapers in Unix systems like GNU / Linux and macOS, it offers support for desktop environments like KDE and Gnome.
 
 ## DinaWall_Core API
 
-this has a 1 essential metho to integrate java apps with the Linux Distributions, **DinaWall_Core** is has implemented a singleton patron desig, then when is initialized this object identify and set the Desktop Enviroment, when is necesary change a wallpaper use a **setWallpaperDesktop(String url)** method with the path to image as String object, dinawall_core change the wallpaper
+DinaWall_Core API is the fundamental endpoint of the library, it is the bridge between the UI and the operating system, it offers all the necessary methods for the administration of wallpapers.
+
+## Dependencies
+
+DinaWall_Core implements the following libraries
+
+* NiconNotifyOSD 
+* Gson 
+* commons-io
+* cron4j
+* junit
+
+## NiconNotifyOSD 
+
+is a javaSE library that aims to show desktop notifications, developed by me and published in version 3.0 in my github repositories.
+[NiconNotifyOSD](https://github.com/NiconDevTeam/NiconNotifyOSD)
+
+
+
+
