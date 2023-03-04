@@ -211,7 +211,7 @@ public final class DinaWallCore {
                     
                     try {
                         System.out.println("json parent directory : "+json_directory.getAbsolutePath());
-                        
+                        System.out.println("DinaWall Installed Directory -> "+this.dinaWall_util.getInstalledDirectory().getAbsolutePath());
                         //copy the directory of dinawallpaper to installed directory
                         
                         FileUtils.copyDirectoryToDirectory(json_directory.getAbsoluteFile(),

@@ -41,9 +41,15 @@ public class DinaWallpaper implements Serializable{
     private List<TimedWallpaper> timedWallpapers;
 
 
-    public DinaWallpaper(String name, String url, String fecha, String autor, 
-                         String email, String license, String preview,
+    public DinaWallpaper(String name,
+                         String url,
+                         String fecha,
+                         String autor,
+                         String email,
+                         String license,
+                         String preview,
                          List<TimedWallpaper> timedWallpapers) {
+
         this.name = name;
         this.url = url;
         this.fecha = fecha;

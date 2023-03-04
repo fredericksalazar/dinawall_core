@@ -3,10 +3,12 @@ plugins {
     id "application"
 }
 
-description = 'dinawall_core'
-
 repositories {
     mavenCentral()    
+}
+
+configurations {
+    externalLibs
 }
 
 dependencies {    
@@ -14,32 +16,22 @@ dependencies {
     implementation          "commons-io:commons-io:2.6"
     implementation          'com.google.code.gson:gson:2.8.5'
     implementation          files('../lib/NiconNotifyOSD.jar')
-    implementation          'it.sauronsoftware.cron4j:cron4j:2.2.5' 
-}
-
-task buildJar(type: Jar) {
-    manifest {
-        attributes(
-                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-                'Main-Class': 'dinawall_core.init.DinaWallDaemon'
-        )
-    }
-    baseName = 'dinawall_core_lib'
-    from {configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }} 
-    with jar
+    implementation          'it.sauronsoftware.cron4j:cron4j:2.2.5'
 }
 
 application {
-    mainClassName = "dinawall_core.init.DinaWallDaemon"
+    mainClass = "dinawall_core.init.DinaWallDaemon"
 }
 
-//jar {
-//  manifest {
-//    attributes(
-//      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-//      'Main-Class': 'dinawall_core.init.DinaWallDaemon'
-//    )
-//  }
-//}
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': "${mainClassName}"
+    }
+    archiveBaseName = "${rootProject.name}"
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+
 
 

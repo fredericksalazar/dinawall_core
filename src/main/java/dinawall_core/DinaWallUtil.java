@@ -69,6 +69,8 @@ public class DinaWallUtil {
     private Gson json_file;
     private Reader reader;
     private File din_file;
+
+    private String img_path;
     
     private boolean validate = true;
     
@@ -172,41 +174,41 @@ public class DinaWallUtil {
     public DinaWallpaper install_din_object(File json) throws IOException{
                         
         try{
-            System.out.println("load a json file installer ... "+json.getAbsolutePath());
-            
             if(json.exists()){
                 json_file = new Gson();
                 reader = Files.newBufferedReader(Paths.get(json.getAbsolutePath()));
-
                 dina_wallpaper = json_file.fromJson(reader, DinaWallpaper.class);
                 
                 if(dina_wallpaper != null && dina_wallpaper.getTimedWallpapers()!=null){
-                    
+
+                    System.out.println("The DinaWallpaper object has been created ..."+dina_wallpaper.toString());
                     dina_wallpaper.setPreview(json.getParent()+"/images/"+dina_wallpaper.getPreview());
-                    
-                    System.err.println("Ruta al preview -> "+dina_wallpaper.getPreview());
-                    
+
                     din_file = new File(this.config_dir+"/"+dina_wallpaper.getName()+".din");
                     
                     dina_wallpaper.getTimedWallpapers().forEach((TimedWallpaper timedWallpaper) -> {
-                        
-                        if(new File(json.getParent()+"/images/"+timedWallpaper.getName()).exists()){
+
+                        img_path = json.getParent() + "/images/" + timedWallpaper.getName();
+                        System.out.println(img_path);
+                        if(new File(img_path).exists()){
                             timedWallpaper.setUrl(json.getParent()+"/images/"+timedWallpaper.getName());
                             timedWallpaper.setExtension(timedWallpaper.getName().split("\\.")[1]);
                             
                             int hour = Integer.parseInt(timedWallpaper.getTimed().split(":")[0]);
                             int minute = Integer.parseInt(timedWallpaper.getTimed().split(":")[1]);
-                            
+
                             if(hour >= 0 && hour <= 24){
                                 timedWallpaper.setHour(hour);
                                 
                                 if(minute >= 0 && minute < 60){
                                     timedWallpaper.setMinute(minute);
                                 }else{
+                                   System.err.println("Fail 2 if");
                                    validate = false;
                                    dina_wallpaper = null;
                                 }
                             }else{
+                                System.err.println("Fail 1 if");
                                 validate = false;
                                 dina_wallpaper = null;
                             }
@@ -215,7 +217,8 @@ public class DinaWallUtil {
                             dina_wallpaper = null;
                         }
                     });
-                    
+
+                    System.out.println("The Din Object has been created ...");
                     
                     if(validate){
                          try (ObjectOutputStream dina_output = new ObjectOutputStream(new FileOutputStream(this.config_dir+"/"+dina_wallpaper.getName()+".din"))) {
