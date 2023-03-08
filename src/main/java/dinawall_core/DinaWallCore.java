@@ -1,15 +1,12 @@
 /**
- * Copyright(C) Frederick Salazar Sanchez <fredefass01@gmail.com>
- *
+ * Copyright(C) Frederick Salazar Sanchez <fredefass01@gmail.com
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
- * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -17,6 +14,7 @@
 package dinawall_core;
 
 import dinawall_core.desktop.Desktop;
+import dinawall_core.desktop.DesktopGnome;
 import dinawall_core.desktop.DesktopKDE;
 import dinawall_core.desktop.DesktopMacOS;
 import dinawall_core.wallpaper.DinaWallpaper;
@@ -47,20 +45,15 @@ public final class DinaWallCore {
     private static DinaWallCore dinaWall_core;    
     private DinaWallUtil dinaWall_util;
     private Desktop desktop_enviroment;
-    private Wallpaper wallpaper;
     private DinaWallpaper current_dinawall;
     
     private boolean isSupported = false;
     
     private Scheduler dinawall_daemon;
-    
-    private File json_file;
-    private File json_directory;
-    
+
     private ArrayList<DinaWallpaper> list_dinaWall;
-    private Collection<File> list_din_files;
-    
-    
+
+
     private DinaWallCore(){
         init();
     }
@@ -87,6 +80,7 @@ public final class DinaWallCore {
             dinaWall_util.print_properties();
             
             String os = dinaWall_util.getOs();
+            String desktop = dinaWall_util.getDesktop();
             
             switch (os.toUpperCase()){
                 case "LINUX":
@@ -124,6 +118,16 @@ public final class DinaWallCore {
              
              this.isSupported = true;
 
+        }
+        if(dinaWall_util.getDesktop().toUpperCase().contains("GNOME")){
+            desktop_enviroment = new DesktopGnome(dinaWall_util.getWidth_screen(),
+                                                  dinaWall_util.getHeight_screen(),
+                                                  dinaWall_util.getDesktop(),
+                                                  dinaWall_util.getOs());
+
+            System.err.println("the Linux GNOME enviroment has been setted ...");
+
+            this.isSupported = true;
         }
     }
     
@@ -164,7 +168,7 @@ public final class DinaWallCore {
 
                 tokens_name = name_file.split("\\.");
 
-                wallpaper = new Wallpaper(tokens_name[0], image_url,tokens_name[tokens_name.length-1]);
+                Wallpaper wallpaper = new Wallpaper(tokens_name[0], image_url, tokens_name[tokens_name.length - 1]);
                 System.out.println(wallpaper.toString());
 
                 System.out.println("El wallpaper será ajustado en el entorno de escritorio ...");
@@ -203,14 +207,14 @@ public final class DinaWallCore {
         DinaWallpaper installed = null;
         
         if(json_path != null){
-            json_file = new File(json_path);
+            File json_file = new File(json_path);
             if(json_file.exists()){
-                json_directory = json_file.getParentFile();                
+                File json_directory = json_file.getParentFile();
                 
                 if(json_directory.isDirectory()){
                     
                     try {
-                        System.out.println("json parent directory : "+json_directory.getAbsolutePath());
+                        System.out.println("json parent directory : "+ json_directory.getAbsolutePath());
                         System.out.println("DinaWall Installed Directory -> "+this.dinaWall_util.getInstalledDirectory().getAbsolutePath());
                         //copy the directory of dinawallpaper to installed directory
                         
@@ -218,11 +222,11 @@ public final class DinaWallCore {
                                                            dinaWall_util.getInstalledDirectory());
                        
                         installed = dinaWall_util.install_din_object(new File(dinaWall_util.getInstalledDirectory()+
-                                                                    "/"+json_directory.getName()+"/"+
+                                                                    "/"+ json_directory.getName()+"/"+
                                                                     json_file.getName()));
                         
                         if(installed == null){
-                            FileUtils.deleteDirectory(new File(dinaWall_util.getInstalledDirectory()+"/"+json_directory.getName()));
+                            FileUtils.deleteDirectory(new File(dinaWall_util.getInstalledDirectory()+"/"+ json_directory.getName()));
                         }else{
                           list_dinaWall.add(installed);  
                         }
@@ -285,7 +289,8 @@ public final class DinaWallCore {
     
     public DinaWallpaper getCurrentDinaWallpaper(){
         current_dinawall = null;
-        
+
+        Collection<File> list_din_files;
         try{
             list_din_files = FileUtils.listFiles(dinaWall_util.getConfig_dir(),new String[]{"din"}, true);
             
@@ -355,8 +360,10 @@ public final class DinaWallCore {
             if(this.current_dinawall != null){                
                 for(TimedWallpaper timed_wallpaper : this.current_dinawall.getTimedWallpapers()){                                       
                     dinawall_task = new SetTimedWallpaperTask(timed_wallpaper, this);                        
-                    dinawall_daemon.schedule(String.valueOf(timed_wallpaper.getMinute())+" "+String.valueOf(timed_wallpaper.getHour())+" * * *", 
-                                           dinawall_task);                    
+                    dinawall_daemon.schedule(String.valueOf(timed_wallpaper.getMinute())+" "+
+                                                            String.valueOf(timed_wallpaper.getHour())+
+                                                            " * * *",
+                                                            dinawall_task);
                 }
             }else{
                 Notification.show("DinaWall", "Dont have a Dynamic Wallpaper current, please select a dinawall in the panel", Notification.NICON_DARK_THEME, Notification.INFO_ICON);
