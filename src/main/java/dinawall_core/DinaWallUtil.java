@@ -1,15 +1,12 @@
 /**
  * Copyright(C) Frederick Salazar Sanchez <fredefass01@gmail.com>
- *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
- * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -49,7 +46,7 @@ public class DinaWallUtil {
     private File dinawall_dir;
     private File config_dir;
     private File installed_dir;
-    private File plasma_script_file;
+    private File tempDir;
         
     private static DinaWallUtil util;
     
@@ -59,16 +56,12 @@ public class DinaWallUtil {
     private String user_name;
     private String home;
     private String desktop;
-    private String version_lib_core;    
-        
-    private Dimension screen_dimension;
-    
+    private String version_lib_core;
+
     private int width_screen;
     private int height_screen;
     private String separator;
-    private Gson json_file;
     private Reader reader;
-    private File din_file;
 
     private String img_path;
     
@@ -97,7 +90,8 @@ public class DinaWallUtil {
             
             dinawall_dir = new File(this.getHome()+"/.dinawall");
             config_dir = new File(dinawall_dir.getAbsoluteFile()+"/config");
-            installed_dir = new File(home+"/.dinawall/installed");            
+            installed_dir = new File(home+"/.dinawall/installed");
+            tempDir = new File(home+"/.dinawall/temp");
                         
             getDimensionScreen();
             
@@ -112,9 +106,9 @@ public class DinaWallUtil {
     
     private void getDimensionScreen(){
         try{
-           screen_dimension = getDefaultToolkit(). getScreenSize();
-           width_screen = (int) screen_dimension.getWidth();
-           height_screen = (int) screen_dimension.getHeight();
+            Dimension screen_dimension = getDefaultToolkit().getScreenSize();
+            width_screen = (int) screen_dimension.getWidth();
+            height_screen = (int) screen_dimension.getHeight();
         }catch(HeadlessException e){
             e.printStackTrace();
         }
@@ -151,7 +145,9 @@ public class DinaWallUtil {
             if(dinawall_dir.mkdir()){
                 try {
                     installed_dir.mkdir();
-                    config_dir.mkdir();                    
+                    config_dir.mkdir();
+                    tempDir.mkdir();
+                    System.out.println(tempDir.getAbsolutePath());
                 } catch (Exception ex) {
                     Logger.getLogger(DinaWallUtil.class.getName()).log(Level.SEVERE, null, ex);
                 } 
@@ -165,19 +161,22 @@ public class DinaWallUtil {
      * This method read a json object and transform this in a java
      * serializable object that contains a configuration of the 
      * dinamic wallappers to set in the desktop
-     * 
-     * @param json 
+     * @param json
      * @return  
      * @throws java.io.IOException 
      */
     
     public DinaWallpaper install_din_object(File json) throws IOException{
-                        
+
+        Gson json_file;
+        File din_file;
         try{
             if(json.exists()){
                 json_file = new Gson();
                 reader = Files.newBufferedReader(Paths.get(json.getAbsolutePath()));
                 dina_wallpaper = json_file.fromJson(reader, DinaWallpaper.class);
+
+                System.err.println("ARCHIVO RECIBIDO -> "+dina_wallpaper.toJson());
                 
                 if(dina_wallpaper != null && dina_wallpaper.getTimedWallpapers()!=null){
 
@@ -189,8 +188,10 @@ public class DinaWallUtil {
                     dina_wallpaper.getTimedWallpapers().forEach((TimedWallpaper timedWallpaper) -> {
 
                         img_path = json.getParent() + "/images/" + timedWallpaper.getName();
+                        System.err.println("PATH IMAG -> "+img_path);
                         System.out.println(img_path);
                         if(new File(img_path).exists()){
+                            System.err.println("ENTRO 1");
                             timedWallpaper.setUrl(json.getParent()+"/images/"+timedWallpaper.getName());
                             timedWallpaper.setExtension(timedWallpaper.getName().split("\\.")[1]);
                             
@@ -198,21 +199,26 @@ public class DinaWallUtil {
                             int minute = Integer.parseInt(timedWallpaper.getTimed().split(":")[1]);
 
                             if(hour >= 0 && hour <= 24){
+                                System.err.println("ENTRO 2");
                                 timedWallpaper.setHour(hour);
                                 
                                 if(minute >= 0 && minute < 60){
+                                    System.err.println("ENTRO 3");
                                     timedWallpaper.setMinute(minute);
                                 }else{
                                    System.err.println("Fail 2 if");
                                    validate = false;
                                    dina_wallpaper = null;
+                                   System.err.println("SALIO 3");
                                 }
                             }else{
                                 System.err.println("Fail 1 if");
                                 validate = false;
                                 dina_wallpaper = null;
+                                System.err.println("SALIO 2");
                             }
                         }else{
+                            System.err.println("SALIO 1");
                             validate = false;
                             dina_wallpaper = null;
                         }
@@ -291,6 +297,10 @@ public class DinaWallUtil {
     public File getConfig_dir() {
         return config_dir;
     }
+
+    public File getTempDir(){
+        return tempDir;
+    }
     
     public String getOs() {
         return os;
@@ -330,10 +340,6 @@ public class DinaWallUtil {
 
     public String getSeparator() {
         return separator;
-    }
-
-    public File getPlasma_script_file() {
-        return plasma_script_file;
     }
           
     public void print_properties(){

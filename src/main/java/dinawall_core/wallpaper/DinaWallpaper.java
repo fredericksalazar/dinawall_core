@@ -16,6 +16,8 @@
 
 package dinawall_core.wallpaper;
 
+import com.google.gson.Gson;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -134,6 +136,10 @@ public class DinaWallpaper implements Serializable{
                             + " email = " + email + ",\n"
                             + " license = " + license + ",\n"
                             + " preview = " + preview + "\n}";
+    }
+
+    public String toJson(){
+       return new Gson().toJson(this);
     }
     
 }

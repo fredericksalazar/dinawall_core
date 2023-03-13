@@ -13,6 +13,7 @@
 
 package dinawall_core;
 
+import com.google.gson.Gson;
 import dinawall_core.desktop.Desktop;
 import dinawall_core.desktop.DesktopGnome;
 import dinawall_core.desktop.DesktopKDE;
@@ -23,6 +24,7 @@ import dinawall_core.wallpaper.Wallpaper;
 import it.sauronsoftware.cron4j.InvalidPatternException;
 import it.sauronsoftware.cron4j.Scheduler;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,7 +60,7 @@ public final class DinaWallCore {
         init();
     }
     
-    protected void init(){
+    private void init(){
         try{
             dinaWall_util = DinaWallUtil.getInstance();
             list_dinaWall = this.get_dinawall_installed();
@@ -80,8 +82,7 @@ public final class DinaWallCore {
             dinaWall_util.print_properties();
             
             String os = dinaWall_util.getOs();
-            String desktop = dinaWall_util.getDesktop();
-            
+
             switch (os.toUpperCase()){
                 case "LINUX":
                     setLinuxDesktopEnviroment();
@@ -119,6 +120,8 @@ public final class DinaWallCore {
              this.isSupported = true;
 
         }
+
+        //Create a GNOME desktop enviroment
         if(dinaWall_util.getDesktop().toUpperCase().contains("GNOME")){
             desktop_enviroment = new DesktopGnome(dinaWall_util.getWidth_screen(),
                                                   dinaWall_util.getHeight_screen(),
@@ -135,7 +138,6 @@ public final class DinaWallCore {
     /**
      * this method create a desktop enviroment object to the macOS system.
      */
-    
     private void setMacOSDesktopEnviroment(){
         desktop_enviroment = new DesktopMacOS(dinaWall_util.getWidth_screen(),
                                               dinaWall_util.getHeight_screen(),
@@ -380,10 +382,58 @@ public final class DinaWallCore {
     
     public void stop_daemon(){
         this.dinawall_daemon.stop();
+        System.out.println("DinaWall Daemon has been Stoped ...");
     }
     
     public void start_daemon(){
         this.dinawall_daemon.start();
+        System.out.println("DinaWall Daemon has been Started ...");
+    }
+
+    /**
+     * This method is used to create a new dynamic wallpaper that the user has configured
+     * It receives a DinaWallpaper object as a parameter that contains the data and configured settings
+     * It is responsible for creating and installing the new wallpaper in DinaWall.
+     * @param dinaWallpaper
+     */
+    public void createNewDinaWallpaper(DinaWallpaper dinaWallpaper){
+        if(dinaWallpaper != null){
+            try{
+                File project = new File(dinaWall_util.getTempDir()+"/"+dinaWallpaper.getName());
+                File images = new File(project.getAbsolutePath()+"/images");
+
+                if(project.mkdir()){
+                    if(images.mkdir()){
+
+                        for (TimedWallpaper timedWallpaper : dinaWallpaper.getTimedWallpapers()) {
+                            //ajustamos la primera imagen como preview
+
+                            File origenImage = new File(timedWallpaper.getName());
+                            File destImage = new File(images.getAbsolutePath()+"/"+origenImage.getName());
+
+                            FileUtils.copyFile(origenImage,
+                                               destImage);
+
+                            timedWallpaper.setName(destImage.getName());
+                        }
+
+                        if(dinaWallpaper.getPreview() == null){
+                            dinaWallpaper.setPreview("../images/"+dinaWallpaper.getTimedWallpapers().get(0).getName());
+                        }
+
+                        Gson config_json = new Gson();
+                        FileWriter jsonWriter = new FileWriter(project.getAbsolutePath()+"/dinawall_config.json");
+
+                        config_json.toJson(dinaWallpaper,jsonWriter);
+
+                        jsonWriter.close();
+                        install_dinawallpaper(project.getAbsolutePath()+"/dinawall_config.json");
+                    }
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
     
     synchronized public static DinaWallCore getInstance(){
