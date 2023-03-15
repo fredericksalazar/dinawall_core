@@ -26,8 +26,11 @@ import it.sauronsoftware.cron4j.Scheduler;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nicon.notify.core.Notification;
@@ -351,7 +354,13 @@ public final class DinaWallCore {
     
     public void init_dinawall_daemon(){
         SetTimedWallpaperTask dinawall_task;
-                
+
+        //get the actual hour of system
+        LocalDateTime dateTime = LocalDateTime.now();
+        int hour = dateTime.getHour();
+        int minHour = 0;
+        TimedWallpaper applyWallpaper = null;
+
         try{
             getCurrentDinaWallpaper();
             
@@ -366,13 +375,22 @@ public final class DinaWallCore {
                                                             String.valueOf(timed_wallpaper.getHour())+
                                                             " * * *",
                                                             dinawall_task);
+
+                    if(hour == timed_wallpaper.getHour()){
+                        applyWallpaper = timed_wallpaper;
+                    } else if (timed_wallpaper.getHour() < hour) {
+                        if(timed_wallpaper.getHour() > minHour){
+                            applyWallpaper = timed_wallpaper;
+                        }
+                    }
                 }
+
             }else{
                 Notification.show("DinaWall", "Dont have a Dynamic Wallpaper current, please select a dinawall in the panel", Notification.NICON_DARK_THEME, Notification.INFO_ICON);
             }
             
             dinawall_daemon.start();
-            
+            setWallpaperDesktop(applyWallpaper);
             System.out.println("The daemon has started ...");
             
         }catch(InvalidPatternException | IllegalStateException e){

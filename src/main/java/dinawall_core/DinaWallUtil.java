@@ -86,7 +86,7 @@ public class DinaWallUtil {
             desktop = System.getenv("XDG_CURRENT_DESKTOP");
             separator = System.getProperty("file.separator");
             
-            version_lib_core = "0.8";
+            version_lib_core = "0.8.1";
             
             dinawall_dir = new File(this.getHome()+"/.dinawall");
             config_dir = new File(dinawall_dir.getAbsoluteFile()+"/config");
