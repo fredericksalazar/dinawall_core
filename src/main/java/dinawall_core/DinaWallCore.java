@@ -29,12 +29,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import it.sauronsoftware.cron4j.TaskExecutor;
 import nicon.notify.core.Notification;
 import org.apache.commons.io.FileUtils;
 
@@ -71,7 +68,7 @@ public final class DinaWallCore {
             dinaWall_util = DinaWallUtil.getInstance();
             list_dinaWall = this.get_dinawall_installed();
             dinawall_daemon = new Scheduler();
-            listTaskExecutors = new ArrayList();
+            listTaskExecutors = new ArrayList<>();
             setDesktopEnviroment();
         }catch(Exception e){
             System.err.println("Error iniciando dinawall_core -> "+e);
@@ -90,13 +87,9 @@ public final class DinaWallCore {
             
             String os = dinaWall_util.getOs();
 
-            switch (os.toUpperCase()){
-                case "LINUX":
-                    setLinuxDesktopEnviroment();
-                    break;
-                case "MAC OS X":
-                    setMacOSDesktopEnviroment();
-                    break;
+            switch (os.toUpperCase()) {
+                case "LINUX" -> setLinuxDesktopEnviroment();
+                case "MAC OS X" -> setMacOSDesktopEnviroment();
             }
             
             if(!this.isSupported){
@@ -116,7 +109,7 @@ public final class DinaWallCore {
     
     private void setLinuxDesktopEnviroment(){
         //Create a KDE Desktop enviroment
-        if("KDE".equals(dinaWall_util.getDesktop().toUpperCase())){
+        if("KDE".equalsIgnoreCase(dinaWall_util.getDesktop())){
             desktop_enviroment = new DesktopKDE(dinaWall_util.getWidth_screen(), 
                                                 dinaWall_util.getHeight_screen(), 
                                                 dinaWall_util.getDesktop(),
@@ -129,7 +122,7 @@ public final class DinaWallCore {
         }
 
         //Create a GNOME desktop enviroment
-        if(dinaWall_util.getDesktop().toUpperCase().contains("GNOME")){
+        if("GNOME".contains(dinaWall_util.getDesktop().toUpperCase())){
             desktop_enviroment = new DesktopGnome(dinaWall_util.getWidth_screen(),
                                                   dinaWall_util.getHeight_screen(),
                                                   dinaWall_util.getDesktop(),
@@ -160,8 +153,6 @@ public final class DinaWallCore {
     /**
      * This method create a Wallpaper object and set this wallpaper
      * in the desktop enviroment object
-     * 
-     * @param image_url 
      */
     
     public void setWallpaperDesktop(String image_url){
@@ -193,9 +184,7 @@ public final class DinaWallCore {
     
     /**
      * This method set a wallpaper in the desktop enviroment usgin a @Wallpaper
-     * object 
-     * 
-     * @param wallpaper 
+     * object
      */
     
     public void setWallpaperDesktop(Wallpaper wallpaper){
@@ -206,9 +195,6 @@ public final class DinaWallCore {
     /**
      * This method is used to install a dinawallpaper, with params have a 
      * path to json file selected
-     * 
-     * @param json_path
-     * @return 
      */
     
     public DinaWallpaper install_dinawallpaper(String json_path){
@@ -252,8 +238,6 @@ public final class DinaWallCore {
     /**
      * This method return a list of danwallpapers installed in dinawall, this
      * objects are a .din files of the config tmp dir.
-     * 
-     * @return 
      */
     
     public ArrayList<DinaWallpaper> get_dinawall_installed(){
@@ -264,7 +248,7 @@ public final class DinaWallCore {
         
         if(list_dinaWall == null || list_dinaWall.isEmpty()){
             
-            list_dinaWall = new ArrayList();
+            list_dinaWall = new ArrayList<>();
             
             try{
                 listFiles = FileUtils.listFiles(dinaWall_util.getConfig_dir(),new String[]{"din"}, true);
@@ -292,8 +276,6 @@ public final class DinaWallCore {
     /**
      * this method return a current dinawallpaper setted in the desktop, this
      * is a current.din file
-     * 
-     * @return DinaWallpaper
      */
     
     public DinaWallpaper getCurrentDinaWallpaper(){
@@ -320,8 +302,6 @@ public final class DinaWallCore {
     
     /**
      * This method set a dinamic wallpaper has current wallpaper
-     * 
-     * @param dina_wall 
      */
     public void setCurrentDinaWallpaper(DinaWallpaper dina_wall){
         try{
@@ -336,7 +316,6 @@ public final class DinaWallCore {
     
     /**
      * This method delete a dinawallpaper of the config dir and installed dir
-     * @param dina_wall 
      */
     public void deleteDinaWallpaper(DinaWallpaper dina_wall){
         try{
@@ -354,7 +333,6 @@ public final class DinaWallCore {
     /**
      * this method star a daemon of dnamicwallpaper to change dynamically the
      * wallpaper based in the hour
-     * 
      */
     
     public void init_dinawall_daemon(){
@@ -376,8 +354,9 @@ public final class DinaWallCore {
                     dinawall_daemon.deschedule(taskID);
                     System.out.println("TaskID -> "+taskID+" Has been descheduled ...");
                 }
-
                 dinawall_daemon.stop();
+
+                listTaskExecutors.clear();
             }
             
             if(this.current_dinawall != null){                
@@ -426,7 +405,6 @@ public final class DinaWallCore {
      * This method is used to create a new dynamic wallpaper that the user has configured
      * It receives a DinaWallpaper object as a parameter that contains the data and configured settings
      * It is responsible for creating and installing the new wallpaper in DinaWall.
-     * @param dinaWallpaper
      */
     public void createNewDinaWallpaper(DinaWallpaper dinaWallpaper){
         if(dinaWallpaper != null){
