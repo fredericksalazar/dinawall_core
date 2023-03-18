@@ -33,6 +33,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import it.sauronsoftware.cron4j.TaskExecutor;
 import nicon.notify.core.Notification;
 import org.apache.commons.io.FileUtils;
 
@@ -57,6 +59,7 @@ public final class DinaWallCore {
     private Scheduler dinawall_daemon;
 
     private ArrayList<DinaWallpaper> list_dinaWall;
+    private ArrayList<String> listTaskExecutors;
 
 
     private DinaWallCore(){
@@ -68,6 +71,7 @@ public final class DinaWallCore {
             dinaWall_util = DinaWallUtil.getInstance();
             list_dinaWall = this.get_dinawall_installed();
             dinawall_daemon = new Scheduler();
+            listTaskExecutors = new ArrayList();
             setDesktopEnviroment();
         }catch(Exception e){
             System.err.println("Error iniciando dinawall_core -> "+e);
@@ -294,14 +298,15 @@ public final class DinaWallCore {
     
     public DinaWallpaper getCurrentDinaWallpaper(){
         current_dinawall = null;
-
+        System.out.println("getting the current.din file wallpaper");
         Collection<File> list_din_files;
         try{
             list_din_files = FileUtils.listFiles(dinaWall_util.getConfig_dir(),new String[]{"din"}, true);
             
             for(File current : list_din_files){
                 if(current.getName().toLowerCase().equals("current.din")){
-                    current_dinawall = dinaWall_util.getDinaWallpaperOfDin(current);                    
+                    current_dinawall = dinaWall_util.getDinaWallpaperOfDin(current);
+                    System.out.println("The current wallpaper is -> "+current_dinawall.getName());
                 }
             }
                         
@@ -363,19 +368,28 @@ public final class DinaWallCore {
 
         try{
             getCurrentDinaWallpaper();
-            
+
             if(dinawall_daemon.isStarted()){
+                System.out.println("Total executors programed -> "+listTaskExecutors.size());
+
+                for (String taskID : listTaskExecutors) {
+                    dinawall_daemon.deschedule(taskID);
+                    System.out.println("TaskID -> "+taskID+" Has been descheduled ...");
+                }
+
                 dinawall_daemon.stop();
             }
             
             if(this.current_dinawall != null){                
                 for(TimedWallpaper timed_wallpaper : this.current_dinawall.getTimedWallpapers()){                                       
                     dinawall_task = new SetTimedWallpaperTask(timed_wallpaper, this);                        
-                    dinawall_daemon.schedule(String.valueOf(timed_wallpaper.getMinute())+" "+
+                    String taskId = dinawall_daemon.schedule(String.valueOf(timed_wallpaper.getMinute())+" "+
                                                             String.valueOf(timed_wallpaper.getHour())+
                                                             " * * *",
                                                             dinawall_task);
 
+                    listTaskExecutors.add(taskId);
+                    System.out.println("TaskID -> "+taskId+" Has been scheduled ...");
                     if(hour == timed_wallpaper.getHour()){
                         applyWallpaper = timed_wallpaper;
                     } else if (timed_wallpaper.getHour() < hour) {
